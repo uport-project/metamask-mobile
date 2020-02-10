@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 
 import { store, persistor } from '../../../store/';
+import { core, dataStore, db } from '../../../daf/setup';
 
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -15,6 +16,17 @@ export default class Root extends PureComponent {
 	constructor(props) {
 		super(props);
 		SecureKeychain.init(props.foxCode); // eslint-disable-line
+	}
+
+	componentDidMount() {
+		const syncDaf = async () => {
+			await db.initialize();
+			await dataStore.initialize();
+			await core.setupServices();
+			await core.listen();
+		};
+
+		syncDaf();
 	}
 
 	render = () => (

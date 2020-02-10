@@ -511,6 +511,11 @@ class DrawerView extends PureComponent {
 		this.hideDrawer();
 	};
 
+	showIdentity = () => {
+		this.props.navigation.navigate('IdentityHome');
+		this.hideDrawer();
+	};
+
 	showWallet = () => {
 		this.props.navigation.navigate('WalletTabHome');
 		this.hideDrawer();
@@ -734,6 +739,13 @@ class DrawerView extends PureComponent {
 					selectedIcon: this.getSelectedImageIcon('wallet'),
 					action: this.showWallet,
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible', 'CollectibleView']
+				},
+				{
+					name: 'Credentials',
+					icon: this.getImageIcon('wallet'),
+					selectedIcon: this.getSelectedImageIcon('wallet'),
+					action: this.showIdentity,
+					routeNames: ['IdentityView']
 				},
 				paymentChannelsEnabled && {
 					name: strings('drawer.insta_pay'),

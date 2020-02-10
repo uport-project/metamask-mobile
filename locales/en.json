@@ -85,6 +85,9 @@
 		"or": "OR",
 		"import_from_seed_button": "Import using seed phrase"
 	},
+	"credentials": {
+		"title": "Credentials"
+	},
 	"login": {
 		"title": "Welcome Back!",
 		"password": "Password",

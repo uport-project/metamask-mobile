@@ -661,6 +661,95 @@ export function getWalletNavbarOptions(title, navigation) {
 }
 
 /**
+ * Function that returns the navigation options
+ * for our wallet screen,
+ *
+ * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
+ */
+export function getCredentialsNavbarOptions(title, navigation) {
+	const onScanSuccess = data => {
+		if (data.target_address) {
+			navigation.navigate('SendView', { txMeta: data });
+		} else if (data.private_key) {
+			Alert.alert(
+				strings('wallet.private_key_detected'),
+				strings('wallet.do_you_want_to_import_this_account'),
+				[
+					{
+						text: strings('wallet.cancel'),
+						onPress: () => false,
+						style: 'cancel'
+					},
+					{
+						text: strings('wallet.yes'),
+						onPress: async () => {
+							try {
+								await importAccountFromPrivateKey(data.private_key);
+								navigation.navigate('ImportPrivateKeySuccess');
+							} catch (e) {
+								Alert.alert(
+									strings('import_private_key.error_title'),
+									strings('import_private_key.error_message')
+								);
+							}
+						}
+					}
+				],
+				{ cancelable: false }
+			);
+		} else if (data.walletConnectURI) {
+			setTimeout(() => {
+				DeeplinkManager.parse(data.walletConnectURI);
+			}, 500);
+		} else if (data.seed) {
+			Alert.alert(strings('wallet.error'), strings('wallet.logout_to_import_seed'));
+		} else if (data && data.indexOf(AppConstants.MM_UNIVERSAL_LINK_HOST) !== -1) {
+			setTimeout(() => {
+				DeeplinkManager.parse(data);
+			}, 500);
+		} else if ((data && data.indexOf('https://') !== -1) || data.indexOf('http://')) {
+			setTimeout(() => {
+				DeeplinkManager.parse(data);
+			}, 500);
+		}
+	};
+
+	function openDrawer() {
+		navigation.openDrawer();
+		trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+	}
+
+	function openQRScanner() {
+		navigation.navigate('QRScanner', {
+			onScanSuccess
+		});
+		trackEvent(ANALYTICS_EVENT_OPTS.WALLET_QR_SCANNER);
+	}
+
+	return {
+		headerTitle: <NavbarTitle title={title} />,
+		headerLeft: (
+			<TouchableOpacity onPress={openDrawer} style={styles.backButton} testID={'hamburger-menu-button-wallet'}>
+				<IonicIcon
+					name={Platform.OS === 'android' ? 'md-menu' : 'ios-menu'}
+					size={Platform.OS === 'android' ? 24 : 28}
+					style={styles.backIcon}
+				/>
+			</TouchableOpacity>
+		),
+		headerRight: (
+			<TouchableOpacity
+				style={styles.infoButton}
+				// eslint-disable-next-line
+				onPress={openQRScanner}
+			>
+				<AntIcon name="scan1" size={28} style={styles.infoIcon} />
+			</TouchableOpacity>
+		)
+	};
+}
+
+/**
  * Function that returns the navigation options containing title and network indicator
  *
  * @param {string} title - Title in string format

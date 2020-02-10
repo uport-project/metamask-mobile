@@ -101,6 +101,7 @@ import Amount from '../../Views/SendFlow/Amount';
 import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
+import Identity from '../../Views/Identity';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -153,6 +154,11 @@ const MainNavigator = createStackNavigator(
 						},
 						RevealPrivateCredentialView: {
 							screen: RevealPrivateCredential
+						}
+					}),
+					IdentityHome: createStackNavigator({
+						IdentityView: {
+							screen: Identity
 						}
 					}),
 					TransactionsHome: createStackNavigator({

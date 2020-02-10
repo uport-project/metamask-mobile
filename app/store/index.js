@@ -1,5 +1,6 @@
 import { createStore } from 'redux';
 import { persistStore, persistReducer, createMigrate } from 'redux-persist';
+import { composeWithDevTools } from 'redux-devtools-extension';
 import AsyncStorage from '@react-native-community/async-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import rootReducer from '../reducers';
@@ -45,5 +46,5 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = createStore(pReducer);
+export const store = createStore(pReducer, composeWithDevTools());
 export const persistor = persistStore(store);
