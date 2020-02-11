@@ -76,6 +76,7 @@
     "daf-selective-disclosure": "^1.5.1",
     "daf-url": "^1.4.1",
     "daf-w3c": "^1.4.1",
+    "did-jwt": "^4.0.0",
     "did-resolver": "^1.1.0",
     "dnode": "1.2.2",
     "eth-contract-metadata": "1.11.0",

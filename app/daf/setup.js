@@ -8,7 +8,10 @@ import { ActionHandler as DBGActionHandler, MessageValidator as DBGMessageValida
 import { Resolver } from 'did-resolver';
 import { getResolver as ethrDidResolver } from 'ethr-did-resolver';
 import { getResolver as webDidResolver } from 'web-did-resolver';
-import EthrDidRnController from 'daf-ethr-did-react-native';
+import EthrDidMetaMaskMobileController from './identityController';
+
+import Engine from '../core/Engine';
+import SecureKeychain from '../core/SecureKeychain';
 
 import RnSqlite from 'daf-react-native-sqlite3';
 import { DataStore } from 'daf-data-store';
@@ -22,7 +25,7 @@ const didResolver = new Resolver({
 	https: web.web
 });
 
-const identityControllers = [new EthrDidRnController()];
+const identityControllers = [new EthrDidMetaMaskMobileController(Engine, SecureKeychain)];
 
 const messageValidator = new DBGMessageValidator();
 messageValidator
