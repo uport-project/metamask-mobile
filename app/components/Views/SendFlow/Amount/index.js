@@ -7,7 +7,6 @@ import {
 	View,
 	TouchableOpacity,
 	TextInput,
-	Platform,
 	KeyboardAvoidingView,
 	FlatList,
 	Image
@@ -126,7 +125,7 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		fontSize: 44,
 		marginRight: 8,
-		paddingVertical: Platform.OS === 'ios' ? 0 : 8,
+		paddingVertical: Device.isIos() ? 0 : 8,
 		justifyContent: 'center',
 		alignItems: 'center'
 	},
@@ -138,7 +137,7 @@ const styles = StyleSheet.create({
 	},
 	switch: {
 		flex: 1,
-		marginTop: Platform.OS === 'ios' ? 0 : 2
+		marginTop: Device.isIos() ? 0 : 2
 	},
 	actionSwitch: {
 		paddingHorizontal: 8,
@@ -200,7 +199,7 @@ const styles = StyleSheet.create({
 		height: 5,
 		borderRadius: 4,
 		backgroundColor: colors.grey400,
-		opacity: Platform.OS === 'android' ? 0.6 : 0.5
+		opacity: Device.isAndroid() ? 0.6 : 0.5
 	},
 	textAssetTitle: {
 		...fontStyles.normal,
@@ -857,7 +856,7 @@ class Amount extends PureComponent {
 					style={styles.nextActionWrapper}
 					behavior={'padding'}
 					keyboardVerticalOffset={KEYBOARD_OFFSET}
-					enabled={Platform.OS === 'ios'}
+					enabled={Device.isIos()}
 				>
 					<View style={styles.buttonNextWrapper}>
 						<StyledButton
