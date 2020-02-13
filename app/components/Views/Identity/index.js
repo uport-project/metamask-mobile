@@ -3,10 +3,14 @@ import { StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { getCredentialsNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Credential, ActivityItem, Device, Container, Text } from '@kancha/kancha-ui';
+import { Credential, ActivityItem, Device, Container, Text, Button } from '@kancha/kancha-ui';
 import { core, dataStore } from '../../../daf/setup';
+import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
+	scrollView: {
+		backgroundColor: colors.grey000
+	},
 	didContainer: {
 		textTransform: 'lowercase',
 		fontFamily: 'menlo'
@@ -69,7 +73,8 @@ class Identity extends PureComponent {
 					'@context': ['https://www.w3.org/2018/credentials/v1'],
 					type: ['VerifiableCredential'],
 					credentialSubject: {
-						name: 'Metamask user'
+						name: 'Metamask user',
+						ethereumAddress: this.props.selectedAddress
 					}
 				}
 			}
@@ -155,8 +160,15 @@ class Identity extends PureComponent {
 							</Text>
 						</Container>
 					</Container>
-
-					{/* <Button title={'Issue Credential'} onPress={() => this.signCredential(did, did)} /> */}
+				</Container>
+				<Container padding>
+					<Button
+						fullWidth
+						block={'outlined'}
+						type={'secondary'}
+						buttonText={'Issue Test Credential'}
+						onPress={() => this.signCredential(did, did)}
+					/>
 				</Container>
 				{this.state.activityItems.map(item => (
 					<ActivityItem

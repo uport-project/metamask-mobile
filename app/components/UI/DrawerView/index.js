@@ -742,8 +742,8 @@ class DrawerView extends PureComponent {
 				},
 				{
 					name: 'Credentials',
-					icon: this.getImageIcon('wallet'),
-					selectedIcon: this.getSelectedImageIcon('wallet'),
+					icon: this.getIcon('heart-o'),
+					selectedIcon: this.getSelectedIcon('heart-o'),
 					action: this.showIdentity,
 					routeNames: ['IdentityView']
 				},
