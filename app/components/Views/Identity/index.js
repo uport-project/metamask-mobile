@@ -35,7 +35,7 @@ class Identity extends PureComponent {
 
 	componentDidUpdate(prevProps) {
 		if (prevProps.selectedAddress !== this.props.selectedAddress) {
-			this.getCredentials();
+			this.getActivity();
 		}
 	}
 
@@ -44,7 +44,7 @@ class Identity extends PureComponent {
 			console.log('Parsed Message');
 
 			await dataStore.saveMessage(message);
-			await this.getActivity();
+			this.getActivity();
 		});
 
 		this.setState({
