@@ -28,6 +28,8 @@ import ANALYTICS_EVENT_OPTS from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
+import { core } from '../../../daf/setup';
+import { Message } from 'daf-core';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -668,50 +670,14 @@ export function getWalletNavbarOptions(title, navigation) {
  */
 export function getCredentialsNavbarOptions(title, navigation) {
 	const onScanSuccess = data => {
-		if (data.target_address) {
-			navigation.navigate('SendView', { txMeta: data });
-		} else if (data.private_key) {
-			Alert.alert(
-				strings('wallet.private_key_detected'),
-				strings('wallet.do_you_want_to_import_this_account'),
-				[
-					{
-						text: strings('wallet.cancel'),
-						onPress: () => false,
-						style: 'cancel'
-					},
-					{
-						text: strings('wallet.yes'),
-						onPress: async () => {
-							try {
-								await importAccountFromPrivateKey(data.private_key);
-								navigation.navigate('ImportPrivateKeySuccess');
-							} catch (e) {
-								Alert.alert(
-									strings('import_private_key.error_title'),
-									strings('import_private_key.error_message')
-								);
-							}
-						}
-					}
-				],
-				{ cancelable: false }
-			);
-		} else if (data.walletConnectURI) {
-			setTimeout(() => {
-				DeeplinkManager.parse(data.walletConnectURI);
-			}, 500);
-		} else if (data.seed) {
-			Alert.alert(strings('wallet.error'), strings('wallet.logout_to_import_seed'));
-		} else if (data && data.indexOf(AppConstants.MM_UNIVERSAL_LINK_HOST) !== -1) {
-			setTimeout(() => {
-				DeeplinkManager.parse(data);
-			}, 500);
-		} else if ((data && data.indexOf('https://') !== -1) || data.indexOf('http://')) {
-			setTimeout(() => {
-				DeeplinkManager.parse(data);
-			}, 500);
-		}
+		core.validateMessage(
+			new Message({
+				raw: data,
+				meta: {
+					type: 'qrCode'
+				}
+			})
+		);
 	};
 
 	function openDrawer() {

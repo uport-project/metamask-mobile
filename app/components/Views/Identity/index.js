@@ -1,64 +1,200 @@
 import React, { PureComponent } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { getCredentialsNavbarOptions } from '../../UI/Navbar';
-
-import { core } from '../../../daf/setup';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import { Credential, ActivityItem, Device, Container, Text } from '@kancha/kancha-ui';
+import { core, dataStore } from '../../../daf/setup';
 
 const styles = StyleSheet.create({
-	container: {
-		padding: 15
-	},
-	title: {
-		fontSize: 18,
-		fontWeight: 'bold'
+	didContainer: {
+		textTransform: 'lowercase',
+		fontFamily: 'menlo'
 	}
 });
 
 class Identity extends PureComponent {
 	static navigationOptions = ({ navigation }) => getCredentialsNavbarOptions('credentials.title', navigation);
 
-	state = {
-		dids: [],
-		addresses: []
+	static propTypes = {
+		/**
+		 * Object that represents the navigator
+		 */
+		selectedAddress: PropTypes.string
 	};
 
-	componentDidMount() {
-		this.showIdentities();
-		this.listIssuers();
+	state = {
+		selectedDid: null,
+		activityItems: [],
+		activityLoading: false
+	};
+
+	componentDidUpdate(prevProps) {
+		if (prevProps.selectedAddress !== this.props.selectedAddress) {
+			this.getCredentials();
+		}
 	}
 
-	listIssuers = async () => {
-		const issuers = await core.identityManager.listIssuers();
-		console.log(issuers);
-	};
+	componentDidMount() {
+		core.on('validatedMessage', async message => {
+			console.log('Parsed Message');
 
-	showIssuer = async () => {
-		const issuer = await core.identityManager.issuer('ethr:did:0x6e62b3610d38af8d2130e515ffb9c799a19655c1');
-
-		console.log(issuer);
-	};
-
-	showIdentities = async () => {
-		const dids = await core.identityManager.listDids();
+			await dataStore.saveMessage(message);
+			await this.getActivity();
+		});
 
 		this.setState({
 			...this.state,
-			dids
+			selectedDid: this.getSelectedDid()
 		});
+
+		this.getActivity();
+	}
+
+	/**
+	 * Sign and save credential with ethereum address private keys
+	 * */
+	signCredential = async (from, to) => {
+		this.setState({
+			...this.state,
+			loadingCredentials: true
+		});
+
+		const jwt = await core.handleAction({
+			type: 'action.sign.w3c.vc',
+			did: from,
+			data: {
+				sub: to,
+				vc: {
+					'@context': ['https://www.w3.org/2018/credentials/v1'],
+					type: ['VerifiableCredential'],
+					credentialSubject: {
+						name: 'Metamask user'
+					}
+				}
+			}
+		});
+
+		if (jwt) {
+			console.log('Sending JWT');
+
+			await core.handleAction({
+				type: 'action.sendJwt',
+				data: {
+					from,
+					to,
+					jwt
+				}
+			});
+		}
 	};
 
+	/**
+	 *  This is a bit cumbersome right now.
+	 *  We need to add a getCredentialWithFields method in datasstore
+	 */
+	getCredentialsForMessage = async id => {
+		const vcs = await dataStore.credentialsForMessageId(id);
+		return await Promise.all(
+			vcs.map(async vc => ({
+				...vc,
+				iss: {
+					did: vc.iss.did,
+					shortId: await dataStore.shortId(vc.iss.did)
+				},
+				sub: {
+					did: vc.sub.did,
+					shortId: await dataStore.shortId(vc.sub.did)
+				},
+				fields: await dataStore.credentialsFieldsForClaimHash(vc.hash)
+			}))
+		);
+	};
+
+	getSelectedDid = () => `did:ethr:${this.props.selectedAddress}`.toLowerCase();
+
+	getViewer = async () => ({ did: this.getSelectedDid(), shortId: await dataStore.shortId(this.getSelectedDid()) });
+
+	getActivity = async () => {
+		const messages = await dataStore.findMessages(this.getSelectedDid(), this.getSelectedDid());
+		const allItems = await Promise.all(
+			messages.map(async message => ({
+				...message,
+				receiver: {
+					did: message.receiver.did,
+					shortId: await dataStore.shortId(message.receiver.did)
+				},
+				sender: {
+					did: message.receiver.did,
+					shortId: await dataStore.shortId(message.sender.did)
+				},
+				vc: await this.getCredentialsForMessage(message.id)
+			}))
+		);
+
+		this.setState(state => ({
+			...state,
+			activityItems: allItems
+		}));
+	};
+
+	noop = () => 'Hello';
+
 	render() {
+		const did = this.getSelectedDid();
 		return (
-			<View style={styles.container}>
-				<Text style={styles.title}>Metamask identities</Text>
-				<Button onPress={this.showIdentities} title={'Show MM identities'} />
-				<Button onPress={this.showIssuer} title={'Show Issuer'} />
-				{this.state.dids.map(did => (
-					<Text key={did}>{did}</Text>
+			<ScrollView
+				style={styles.scrollView}
+				refreshControl={<RefreshControl onRefresh={this.getActivity} refreshing={this.state.activityLoading} />}
+			>
+				<Container background={'primary'} marginBottom={5}>
+					<Container padding>
+						<Container background={'secondary'} padding={10} br={5} marginVertical={10}>
+							<Text selectable textStyle={styles.didContainer}>
+								<Text>{did}</Text>
+							</Text>
+						</Container>
+					</Container>
+
+					{/* <Button title={'Issue Credential'} onPress={() => this.signCredential(did, did)} /> */}
+				</Container>
+				{this.state.activityItems.map(item => (
+					<ActivityItem
+						id={item.id}
+						key={item.id}
+						profileAction={this.noop}
+						confirm={this.noop}
+						reject={this.noop}
+						viewer={this.getViewer()}
+						sender={item.sender}
+						attachments={item.vc}
+						actions={['Share']}
+						renderAttachment={credential => (
+							<Container key={credential.hash} w={Device.width - 40} padding paddingRight={0}>
+								<Credential
+									onPress={this.noop}
+									background={'primary'}
+									shadow={1.5}
+									key={credential.hash}
+									issuer={credential.iss}
+									subject={credential.sub}
+									jwt={credential.jwt}
+									fields={credential.fields}
+								/>
+							</Container>
+						)}
+						receiver={item.receiver}
+						date={item.timestamp * 1000}
+						type={item.type}
+					/>
 				))}
-			</View>
+			</ScrollView>
 		);
 	}
 }
+const mapStateToProps = state => ({
+	identities: state.engine.backgroundState.PreferencesController.identities,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress
+});
 
-export default Identity;
+export default connect(mapStateToProps)(Identity);

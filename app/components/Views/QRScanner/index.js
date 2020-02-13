@@ -1,6 +1,16 @@
 'use strict';
 import React, { PureComponent } from 'react';
-import { InteractionManager, SafeAreaView, Image, Text, TouchableOpacity, View, StyleSheet, Alert } from 'react-native';
+import {
+	InteractionManager,
+	SafeAreaView,
+	Image,
+	Text,
+	TouchableOpacity,
+	View,
+	StyleSheet,
+	Alert,
+	TextInput
+} from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { colors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -40,6 +50,14 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		justifyContent: 'center',
 		marginTop: 100
+	},
+	scanJwtText: {
+		marginHorizontal: 15,
+		padding: 10,
+		color: colors.grey050,
+		backgroundColor: colors.grey100,
+		borderRadius: 5,
+		borderWidth: 1
 	}
 });
 
@@ -68,6 +86,10 @@ export default class QrScanner extends PureComponent {
 		if (this.props.navigation.state.params.onScanError) {
 			this.props.navigation.state.params.onScanError('USER_CANCELLED');
 		}
+	};
+
+	pasteDebugJWT = data => {
+		this.onBarCodeRead({ data });
 	};
 
 	onBarCodeRead = response => {
@@ -163,6 +185,19 @@ export default class QrScanner extends PureComponent {
 					<TouchableOpacity style={styles.closeIcon} onPress={this.goBack}>
 						<Icon name={'ios-close'} size={50} color={'white'} />
 					</TouchableOpacity>
+					{__DEV__ && (
+						<View>
+							<TextInput
+								autoCapitalize={'none'}
+								autoCorrect={false}
+								autoCompleteType={'off'}
+								placeholder={'Paste JWT'}
+								placeholderTextColor={'#CCCCCC'}
+								onChangeText={this.pasteDebugJWT}
+								style={styles.scanJwtText}
+							/>
+						</View>
+					)}
 					<Image source={frameImage} style={styles.frame} />
 					<Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
 				</SafeAreaView>

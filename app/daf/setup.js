@@ -4,17 +4,17 @@ import { MessageValidator as W3cMessageValidator, ActionHandler as W3cActionHand
 import { MessageValidator as SDMessageValidator, ActionHandler as SDActionHandler } from 'daf-selective-disclosure';
 import { MessageValidator as UrlMessageValidator } from 'daf-url';
 import { ActionHandler as DBGActionHandler, MessageValidator as DBGMessageValidator } from 'daf-debug';
-
+import { ActionHandler as TGActionHandler, ServiceController as TGServiceController } from 'daf-trust-graph';
 import { Resolver } from 'did-resolver';
 import { getResolver as ethrDidResolver } from 'ethr-did-resolver';
 import { getResolver as webDidResolver } from 'web-did-resolver';
 import EthrDidMetaMaskMobileController from './identityController';
-
 import Engine from '../core/Engine';
 import SecureKeychain from '../core/SecureKeychain';
-
 import RnSqlite from 'daf-react-native-sqlite3';
 import { DataStore } from 'daf-data-store';
+
+const identityControllers = [new EthrDidMetaMaskMobileController(Engine, SecureKeychain)];
 
 const web = webDidResolver();
 const didResolver = new Resolver({
@@ -25,8 +25,6 @@ const didResolver = new Resolver({
 	https: web.web
 });
 
-const identityControllers = [new EthrDidMetaMaskMobileController(Engine, SecureKeychain)];
-
 const messageValidator = new DBGMessageValidator();
 messageValidator
 	.setNext(new UrlMessageValidator())
@@ -35,9 +33,12 @@ messageValidator
 	.setNext(new SDMessageValidator());
 
 const actionHandler = new DBGActionHandler();
-actionHandler.setNext(new W3cActionHandler()).setNext(new SDActionHandler());
+actionHandler
+	.setNext(new TGActionHandler())
+	.setNext(new W3cActionHandler())
+	.setNext(new SDActionHandler());
 
-const serviceControllers = [];
+const serviceControllers = [TGServiceController];
 
 export const core = new Core({
 	identityControllers,

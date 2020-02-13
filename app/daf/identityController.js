@@ -17,7 +17,7 @@ export default class EthrDidMetaMaskMobileController {
 		const accounts = await KeyringController.getAccounts();
 		return {
 			identities: accounts.map(account => ({
-				did: 'ethr:did:' + account,
+				did: 'did:ethr:' + account,
 				address: account
 			}))
 		};
