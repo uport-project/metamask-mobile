@@ -121,7 +121,11 @@ class Identity extends PureComponent {
 	getViewer = async () => ({ did: this.getSelectedDid(), shortId: await dataStore.shortId(this.getSelectedDid()) });
 
 	getActivity = async () => {
-		const messages = await dataStore.findMessages(this.getSelectedDid(), this.getSelectedDid());
+		const did = this.getSelectedDid();
+		const messages = await dataStore.findMessages({
+			sender: did,
+			receiver: did
+		});
 		const allItems = await Promise.all(
 			messages.map(async message => ({
 				...message,
@@ -136,6 +140,8 @@ class Identity extends PureComponent {
 				vc: await this.getCredentialsForMessage(message.id)
 			}))
 		);
+
+		console.log(allItems);
 
 		this.setState(state => ({
 			...state,
