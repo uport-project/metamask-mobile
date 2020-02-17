@@ -24,6 +24,8 @@ export default class Root extends PureComponent {
 			await dataStore.initialize();
 			await core.setupServices();
 			await core.listen();
+
+			await core.getMessagesSince(await dataStore.latestMessageTimestamps());
 		};
 
 		syncDaf();
