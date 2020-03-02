@@ -4,7 +4,7 @@ import { getCredentialsNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Credential, ActivityItem, Device, Container, Text, Button } from '@kancha/kancha-ui';
-import { core, dataStore } from '../../../daf/setup';
+import { core, dataStore, DafMessage } from '../../../daf/setup.ts';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -47,6 +47,18 @@ class Identity extends PureComponent {
 
 		this.getActivity();
 	}
+
+	saveJWT = async () => {
+		await core.validateMessage(
+			new DafMessage({
+				raw:
+					'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NkstUiJ9.eyJpYXQiOjE1ODMxNTI4NDUsInN1YiI6ImRpZDpldGhyOnJpbmtlYnk6MHg3MGJCNzU5MkNEQjI2NGZmNDYxQjA3MDE1MWFBNmI2YzFiMDk0MDI3IiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJuYW1lIjoiRGFmIFVzZXIifX0sImlzcyI6ImRpZDpldGhyOnJpbmtlYnk6MHhlM2FmNjg2MzEwN2JkM2ZhZjM0NDExNTg3MDhhOWFlMTBmNTllMDZmIn0.C0yJd8slFhVQNgZtmxUWQiLCrUYnDHs5Xw4CUw0GrZTG8sYP9nbD9vb0Lv6F80Jtqg8MJIx1KV0NmuCdOBySZQE',
+				meta: {
+					type: 'walletConnect'
+				}
+			})
+		);
+	};
 
 	/**
 	 * Sign and save credential with ethereum address private keys
@@ -166,7 +178,7 @@ class Identity extends PureComponent {
 						block={'outlined'}
 						type={'secondary'}
 						buttonText={'Issue Test Credential'}
-						onPress={() => this.signCredential(did, did)}
+						onPress={this.saveJWT}
 					/>
 				</Container>
 				{this.state.activityItems.map(item => (

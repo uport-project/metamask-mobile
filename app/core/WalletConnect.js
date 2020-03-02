@@ -4,7 +4,7 @@ import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
-import { core, DafMessage } from '../daf/setup';
+import { core, DafMessage } from '../daf/setup.ts';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -213,15 +213,7 @@ class WalletConnect {
 							throw new Error('Autosign is not currently supported');
 						} else {
 							const jwt = payload.params[0];
-
-							core.validateMessage(
-								new DafMessage({
-									raw: payload.params[0],
-									meta: {
-										type: 'walletConnect'
-									}
-								})
-							);
+							Logger.log('JWT', jwt);
 
 							rawSig = await DafMessageManager.addUnapprovedCredentialAsync({
 								data: jwt,
@@ -231,6 +223,16 @@ class WalletConnect {
 									icon: meta && meta.icons && meta.icons[0]
 								}
 							});
+
+							// Move to DafMessageManager
+							await core.validateMessage(
+								new DafMessage({
+									raw: jwt,
+									meta: {
+										type: 'walletConnect'
+									}
+								})
+							);
 						}
 						this.walletConnector.approveRequest({
 							id: payload.id,

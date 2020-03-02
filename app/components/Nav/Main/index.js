@@ -103,7 +103,7 @@ import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import Identity from '../../Views/Identity';
-import { core, dataStore } from '../../../daf/setup';
+import { core, dataStore } from '../../../daf/setup.ts';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -470,12 +470,16 @@ class Main extends PureComponent {
 	};
 
 	componentDidMount = async () => {
-		core.on('validatedMessage', async message => {
-			console.log('Parsed Message');
-			await dataStore.saveMessage(message);
-		});
-
 		InteractionManager.runAfterInteractions(() => {
+			core.on('validatedMessage', async message => {
+				console.log('Parsed Message');
+				try {
+					await dataStore.saveMessage(message);
+				} catch (e) {
+					console.log(e);
+				}
+			});
+
 			AppState.addEventListener('change', this.handleAppStateChange);
 			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
 			PushNotification.configure({
