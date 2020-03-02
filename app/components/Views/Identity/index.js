@@ -40,13 +40,6 @@ class Identity extends PureComponent {
 	}
 
 	componentDidMount() {
-		core.on('validatedMessage', async message => {
-			console.log('Parsed Message');
-
-			await dataStore.saveMessage(message);
-			this.getActivity();
-		});
-
 		this.setState({
 			...this.state,
 			selectedDid: this.getSelectedDid()

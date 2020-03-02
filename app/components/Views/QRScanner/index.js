@@ -191,7 +191,7 @@ export default class QrScanner extends PureComponent {
 								autoCapitalize={'none'}
 								autoCorrect={false}
 								autoCompleteType={'off'}
-								placeholder={'Paste JWT'}
+								placeholder={'Paste String'}
 								placeholderTextColor={'#CCCCCC'}
 								onChangeText={this.pasteDebugJWT}
 								style={styles.scanJwtText}

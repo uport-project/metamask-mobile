@@ -1,4 +1,4 @@
-import { Core } from 'daf-core';
+import { Core, Message as DafMessage } from 'daf-core';
 import { MessageValidator as DidJwtMessageValidator } from 'daf-did-jwt';
 import { MessageValidator as W3cMessageValidator, ActionHandler as W3cActionHandler } from 'daf-w3c';
 import { MessageValidator as SDMessageValidator, ActionHandler as SDActionHandler } from 'daf-selective-disclosure';
@@ -60,3 +60,5 @@ export const core = new Core({
 
 export const db = new RnSqlite('database.sqlite3');
 export const dataStore = new DataStore(db);
+
+export { DafMessage };

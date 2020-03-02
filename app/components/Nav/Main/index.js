@@ -72,6 +72,7 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import { BNToHex, hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../util/number';
 import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
+import CredentialReceive from '../../UI/CredentialReceive';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
@@ -102,6 +103,7 @@ import Confirm from '../../Views/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import TransactionTypes from '../../../core/TransactionTypes';
 import Identity from '../../Views/Identity';
+import { core, dataStore } from '../../../daf/setup';
 
 const styles = StyleSheet.create({
 	flex: {
@@ -468,6 +470,11 @@ class Main extends PureComponent {
 	};
 
 	componentDidMount = async () => {
+		core.on('validatedMessage', async message => {
+			console.log('Parsed Message');
+			await dataStore.saveMessage(message);
+		});
+
 		InteractionManager.runAfterInteractions(() => {
 			AppState.addEventListener('change', this.handleAppStateChange);
 			this.lockManager = new LockManager(this.props.navigation, this.props.lockTime);
@@ -498,6 +505,8 @@ class Main extends PureComponent {
 			Engine.context.TransactionController.hub.on('unapprovedTransaction', this.onUnapprovedTransaction);
 
 			Engine.context.MessageManager.hub.on('unapprovedMessage', messageParams => {
+				console.log('MessageManager', messageParams);
+
 				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
 				delete messageParams.meta;
 				this.setState({
@@ -532,6 +541,41 @@ class Main extends PureComponent {
 					currentPageUrl
 				});
 			});
+
+			Engine.context.DafMessageManager.hub.on('unapprovedCredential', messageParams => {
+				Logger.log('ISSUE_CREDENTIAL', messageParams);
+
+				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+				delete messageParams.meta;
+				this.setState({
+					signMessage: true,
+					signMessageParams: messageParams,
+					signType: 'issue_credential',
+					currentPageTitle,
+					currentPageUrl
+				});
+			});
+
+			// DafMessageEvent.addListener('issue_credential', payload => {
+			// 	const { title: currentPageTitle, url: currentPageUrl } = payload.meta;
+			// 	console.log('DAF Listener', payload);
+
+			// 	this.setState({
+			// 		signMessage: true,
+			// 		signMessageParams: {
+			// 			from: payload.from,
+			// 			to: payload.to,
+			// 			jwt: payload.jwt
+			// 		},
+			// 		signType: 'issue_credential',
+			// 		currentPageTitle,
+			// 		currentPageUrl
+			// 	});
+			// });
+
+			// DafMessageEvent.addListener('request_credentials', payload => {
+			// 	console.log('DAF Listener', payload);
+			// });
 
 			setTimeout(() => {
 				TransactionsNotificationManager.init(this.props.navigation);
@@ -937,6 +981,9 @@ class Main extends PureComponent {
 
 	renderSigningModal = () => {
 		const { signMessage, signMessageParams, signType, currentPageTitle, currentPageUrl } = this.state;
+
+		console.log(signType, signMessageParams);
+
 		return (
 			<Modal
 				isVisible={signMessage}
@@ -952,6 +999,14 @@ class Main extends PureComponent {
 				swipeDirection={'down'}
 				propagateSwipe
 			>
+				{signType === 'issue_credential' && (
+					<CredentialReceive
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
 				{signType === 'personal' && (
 					<PersonalSign
 						messageParams={signMessageParams}

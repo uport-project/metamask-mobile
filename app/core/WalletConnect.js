@@ -4,6 +4,7 @@ import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
 import AsyncStorage from '@react-native-community/async-storage';
+import { core, DafMessage } from '../daf/setup';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -204,6 +205,52 @@ class WalletConnect {
 							error
 						});
 					}
+				} else if (payload.method && payload.method === 'issue_credential') {
+					const { DafMessageManager } = Engine.context;
+					let rawSig = null;
+					try {
+						if (payload.params[2]) {
+							throw new Error('Autosign is not currently supported');
+						} else {
+							const jwt = payload.params[0];
+
+							core.validateMessage(
+								new DafMessage({
+									raw: payload.params[0],
+									meta: {
+										type: 'walletConnect'
+									}
+								})
+							);
+
+							rawSig = await DafMessageManager.addUnapprovedCredentialAsync({
+								data: jwt,
+								meta: {
+									title: meta && meta.name,
+									url: meta && meta.url,
+									icon: meta && meta.icons && meta.icons[0]
+								}
+							});
+						}
+						this.walletConnector.approveRequest({
+							id: payload.id,
+							result: rawSig
+						});
+					} catch (error) {
+						this.walletConnector.rejectRequest({
+							id: payload.id,
+							error
+						});
+					}
+				} else if (payload.method && payload.method === 'request_credentials') {
+					// DafMessageEvent.emit('request_credentials', {
+					// 	...payload.params[0],
+					// 	meta: {
+					// 		title: meta && meta.name,
+					// 		url: meta && meta.url,
+					// 		icon: meta && meta.icons && meta.icons[0]
+					// 	}
+					// });
 				}
 				this.redirectIfNeeded();
 			}

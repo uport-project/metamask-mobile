@@ -19,6 +19,7 @@ import {
 	TransactionController,
 	TypedMessageManager
 } from 'gaba';
+import DafMessageManager from '../daf/DafMessageManager.ts';
 
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -30,6 +31,8 @@ import { store } from '../store';
 import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from '../util/number';
 import TransactionsNotificationManager from './TransactionsNotificationManager';
 import contractMap from 'eth-contract-metadata';
+
+// import { core, dataStore } from '../daf/setup';
 
 const OPENSEA_API_KEY = process.env['MM_OPENSEA_KEY']; // eslint-disable-line dot-notation
 const encryptor = new Encryptor();
@@ -71,6 +74,7 @@ class Engine {
 						nativeCurrency,
 						currentCurrency
 					}),
+					new DafMessageManager(),
 					new PersonalMessageManager(),
 					new MessageManager(),
 					new NetworkController(
@@ -384,6 +388,7 @@ export default {
 			CurrencyRateController,
 			KeyringController,
 			PersonalMessageManager,
+			DafMessageManager,
 			NetworkController,
 			NetworkStatusController,
 			PreferencesController,
@@ -403,6 +408,7 @@ export default {
 			CurrencyRateController,
 			KeyringController,
 			PersonalMessageManager,
+			DafMessageManager,
 			NetworkController,
 			NetworkStatusController,
 			PhishingController,
