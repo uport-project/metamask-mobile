@@ -8,18 +8,28 @@ import { ActionHandler as TGActionHandler, ServiceController as TGServiceControl
 import { Resolver } from 'did-resolver';
 import { getResolver as ethrDidResolver } from 'ethr-did-resolver';
 import { getResolver as webDidResolver } from 'web-did-resolver';
-import EthrDidMetaMaskMobileController from './identityController';
+import { IdentityProvider } from 'daf-ethr-did'
+import IdentityStore from './identityStore';
+import KeyManagementSystem from './keyManagementSystem';
 import Engine from '../core/Engine';
 import SecureKeychain from '../core/SecureKeychain';
 import RnSqlite from 'daf-react-native-sqlite3';
 import { DataStore } from 'daf-data-store';
 
-const identityControllers = [new EthrDidMetaMaskMobileController(Engine, SecureKeychain)];
+const infuraProjectId = '5ffc47f65c4042ce847ef66a3fa70d4c'
+
+
+const identityProviders = [new IdentityProvider({
+	identityStore: new IdentityStore(Engine, SecureKeychain),
+	kms: new KeyManagementSystem(Engine, SecureKeychain),
+	network: 'rinkeby',
+	rpcUrl: 'https://rinkeby.infura.io/v3/' + infuraProjectId,
+})];
 
 const web = webDidResolver();
 const didResolver = new Resolver({
 	...ethrDidResolver({
-		rpcUrl: 'https://mainnet.infura.io/v3/5ffc47f65c4042ce847ef66a3fa70d4c'
+		rpcUrl: 'https://mainnet.infura.io/v3/' + infuraProjectId
 	}),
 	...web,
 	https: web.web
@@ -41,7 +51,7 @@ actionHandler
 const serviceControllers = [TGServiceController];
 
 export const core = new Core({
-	identityControllers,
+	identityProviders,
 	serviceControllers,
 	didResolver,
 	messageValidator,
