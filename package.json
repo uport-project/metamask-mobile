@@ -78,6 +78,7 @@
     "daf-trust-graph": "^2.3.14",
     "daf-url": "^2.3.12",
     "daf-w3c": "^2.3.12",
+    "debug": "^4.1.1",
     "did-jwt": "^4.0.0",
     "did-resolver": "^1.1.0",
     "dnode": "1.2.2",

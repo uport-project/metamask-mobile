@@ -15,6 +15,8 @@ import Engine from '../core/Engine';
 import SecureKeychain from '../core/SecureKeychain';
 import RnSqlite from 'daf-react-native-sqlite3';
 import { DataStore } from 'daf-data-store';
+import Debug from 'debug';
+Debug.enable('*')
 
 const infuraProjectId = '5ffc47f65c4042ce847ef66a3fa70d4c'
 
@@ -29,8 +31,10 @@ const identityProviders = [new IdentityProvider({
 const web = webDidResolver();
 const didResolver = new Resolver({
 	...ethrDidResolver({
-		rpcUrl: 'https://mainnet.infura.io/v3/' + infuraProjectId
-	}),
+		networks: [
+			{ name: 'mainnet', rpcUrl: 'https://mainnet.infura.io/v3/' + infuraProjectId },
+			{ name: 'rinkeby', rpcUrl: 'https://rinkeby.infura.io/v3/' + infuraProjectId },
+	]}),
 	...web,
 	https: web.web
 });
