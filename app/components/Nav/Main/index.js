@@ -560,26 +560,19 @@ class Main extends PureComponent {
 				});
 			});
 
-			// DafMessageEvent.addListener('issue_credential', payload => {
-			// 	const { title: currentPageTitle, url: currentPageUrl } = payload.meta;
-			// 	console.log('DAF Listener', payload);
+			Engine.context.DafMessageManager.hub.on('unapprovedSDR_Request', messageParams => {
+				Logger.log('REQUEST_CREDENTIALS', messageParams);
 
-			// 	this.setState({
-			// 		signMessage: true,
-			// 		signMessageParams: {
-			// 			from: payload.from,
-			// 			to: payload.to,
-			// 			jwt: payload.jwt
-			// 		},
-			// 		signType: 'issue_credential',
-			// 		currentPageTitle,
-			// 		currentPageUrl
-			// 	});
-			// });
-
-			// DafMessageEvent.addListener('request_credentials', payload => {
-			// 	console.log('DAF Listener', payload);
-			// });
+				const { title: currentPageTitle, url: currentPageUrl } = messageParams.meta;
+				delete messageParams.meta;
+				this.setState({
+					signMessage: true,
+					signMessageParams: messageParams,
+					signType: 'request_credentials',
+					currentPageTitle,
+					currentPageUrl
+				});
+			});
 
 			setTimeout(() => {
 				TransactionsNotificationManager.init(this.props.navigation);
@@ -1004,6 +997,14 @@ class Main extends PureComponent {
 				propagateSwipe
 			>
 				{signType === 'issue_credential' && (
+					<CredentialReceive
+						messageParams={signMessageParams}
+						onCancel={this.onSignAction}
+						onConfirm={this.onSignAction}
+						currentPageInformation={{ title: currentPageTitle, url: currentPageUrl }}
+					/>
+				)}
+				{signType === 'request_credentials' && (
 					<CredentialReceive
 						messageParams={signMessageParams}
 						onCancel={this.onSignAction}

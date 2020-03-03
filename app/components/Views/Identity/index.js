@@ -4,7 +4,7 @@ import { getCredentialsNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Credential, ActivityItem, Device, Container, Text, Button } from '@kancha/kancha-ui';
-import { core, dataStore, DafMessage } from '../../../daf/setup.ts';
+import { core, dataStore } from '../../../daf/setup.ts';
 import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
@@ -47,18 +47,6 @@ class Identity extends PureComponent {
 
 		this.getActivity();
 	}
-
-	saveJWT = async () => {
-		await core.validateMessage(
-			new DafMessage({
-				raw:
-					'eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NkstUiJ9.eyJpYXQiOjE1ODMxNTI4NDUsInN1YiI6ImRpZDpldGhyOnJpbmtlYnk6MHg3MGJCNzU5MkNEQjI2NGZmNDYxQjA3MDE1MWFBNmI2YzFiMDk0MDI3IiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCJdLCJjcmVkZW50aWFsU3ViamVjdCI6eyJuYW1lIjoiRGFmIFVzZXIifX0sImlzcyI6ImRpZDpldGhyOnJpbmtlYnk6MHhlM2FmNjg2MzEwN2JkM2ZhZjM0NDExNTg3MDhhOWFlMTBmNTllMDZmIn0.C0yJd8slFhVQNgZtmxUWQiLCrUYnDHs5Xw4CUw0GrZTG8sYP9nbD9vb0Lv6F80Jtqg8MJIx1KV0NmuCdOBySZQE',
-				meta: {
-					type: 'walletConnect'
-				}
-			})
-		);
-	};
 
 	/**
 	 * Sign and save credential with ethereum address private keys
@@ -109,19 +97,19 @@ class Identity extends PureComponent {
 			vcs.map(async vc => ({
 				...vc,
 				iss: {
-					did: vc.iss.did,
-					shortId: await dataStore.shortId(vc.iss.did)
+					did: vc.iss?.did,
+					shortId: await dataStore.shortId(vc.iss?.did)
 				},
 				sub: {
-					did: vc.sub.did,
-					shortId: await dataStore.shortId(vc.sub.did)
+					did: vc.sub?.did,
+					shortId: await dataStore.shortId(vc.sub?.did)
 				},
 				fields: await dataStore.credentialsFieldsForClaimHash(vc.hash)
 			}))
 		);
 	};
 
-	getSelectedDid = () => `did:ethr:${this.props.selectedAddress}`.toLowerCase();
+	getSelectedDid = () => `did:ethr:rinkeby:${this.props.selectedAddress}`.toLowerCase();
 
 	getViewer = async () => ({ did: this.getSelectedDid(), shortId: await dataStore.shortId(this.getSelectedDid()) });
 
@@ -131,15 +119,16 @@ class Identity extends PureComponent {
 			sender: did,
 			receiver: did
 		});
+
 		const allItems = await Promise.all(
 			messages.map(async message => ({
 				...message,
-				receiver: {
+				receiver: message?.receiver && {
 					did: message.receiver.did,
 					shortId: await dataStore.shortId(message.receiver.did)
 				},
-				sender: {
-					did: message.receiver.did,
+				sender: message?.sender && {
+					did: message.sender.did,
 					shortId: await dataStore.shortId(message.sender.did)
 				},
 				vc: await this.getCredentialsForMessage(message.id)
@@ -178,7 +167,7 @@ class Identity extends PureComponent {
 						block={'outlined'}
 						type={'secondary'}
 						buttonText={'Issue Test Credential'}
-						onPress={this.saveJWT}
+						onPress={() => this.signCredential(did, did)}
 					/>
 				</Container>
 				{this.state.activityItems.map(item => (
