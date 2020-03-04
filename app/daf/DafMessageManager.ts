@@ -75,19 +75,11 @@ export class DafMessageManager extends AbstractMessageManager<Message, MessagePa
 	 * @returns - Promise resolving to the raw data of the signature request
 	 */
 	addUnapprovedCredentialAsync(messageParams: MessageParams, req?: OriginalRequest): Promise<string> {
-		return new Promise((resolve, reject) => {
-			const messageId = this.addUnapprovedMessage(messageParams, req);
+		return new Promise(async (resolve, reject) => {
+			const messageId = await this.addUnapprovedMessage(messageParams, req);
 			this.hub.once(`${messageId}:finished`, async (data: Message) => {
 				switch (data.status) {
 					case 'signed':
-						await core.validateMessage(
-							new DafMessage({
-								raw: messageParams.data,
-								meta: {
-									type: 'walletConnect'
-								}
-							})
-						);
 						return resolve('OK');
 					case 'rejected':
 						return reject(new Error('MetaMask Credential Receive: User denied credential.'));
@@ -187,11 +179,19 @@ export class DafMessageManager extends AbstractMessageManager<Message, MessagePa
 	 * @param req? - The original request object possibly containing the origin
 	 * @returns - The id of the newly created message
 	 */
-	addUnapprovedMessage(messageParams: MessageParams, req?: OriginalRequest) {
+		async addUnapprovedMessage(messageParams: MessageParams, req?: OriginalRequest) {
 		if (req) {
 			messageParams.origin = req.origin;
 		}
 		// messageParams.data = normalizeMessageData(messageParams.data);
+		const dafmessage = await core.validateMessage(
+			new DafMessage({
+				raw: messageParams.data,
+				meta: {
+					type: 'walletConnect'
+				}
+			})
+		);
 		const messageId = random();
 		const messageData: Message = {
 			id: messageId,
@@ -202,8 +202,9 @@ export class DafMessageManager extends AbstractMessageManager<Message, MessagePa
 		};
 		this.addMessage(messageData);
 		Logger.log('Message_DATA', messageData);
-		this.hub.emit(`unapprovedCredential`, { ...messageParams, ...{ metamaskId: messageId } });
-		return messageId;
+		this.hub.emit(`unapprovedCredential`, { ...messageParams, ...{ dafmessageId: dafmessage.id }, ...{ metamaskId: messageId } });
+
+		return messageId
 	}
 
 	/**

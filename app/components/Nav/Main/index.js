@@ -73,6 +73,7 @@ import { BNToHex, hexToBN, fromWei, renderFromTokenMinimalUnit } from '../../../
 import { setEtherTransaction, setTransactionObject } from '../../../actions/transaction';
 import PersonalSign from '../../UI/PersonalSign';
 import CredentialReceive from '../../UI/CredentialReceive';
+import SDisclosureRequest from '../../UI/SDisclosureRequest';
 import TypedSign from '../../UI/TypedSign';
 import Modal from 'react-native-modal';
 import WalletConnect from '../../../core/WalletConnect';
@@ -1005,7 +1006,7 @@ class Main extends PureComponent {
 					/>
 				)}
 				{signType === 'request_credentials' && (
-					<CredentialReceive
+					<SDisclosureRequest
 						messageParams={signMessageParams}
 						onCancel={this.onSignAction}
 						onConfirm={this.onSignAction}

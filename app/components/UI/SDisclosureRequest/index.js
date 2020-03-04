@@ -3,11 +3,10 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
-import CredentialAccept from '../CredentialAccept';
-// import { strings } from '../../../../locales/i18n';
+import VPSign from '../VPSign';
+import { strings } from '../../../../locales/i18n';
+// import { util } from 'gaba';
 import DeviceSize from '../../../util/DeviceSize';
-import { dataStore } from '../../../daf/setup.ts';
-import { Credential } from '@kancha/kancha-ui';
 
 const styles = StyleSheet.create({
 	root: {
@@ -22,11 +21,11 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		padding: 20
 	},
-	// messageLabelText: {
-	// 	...fontStyles.normal,
-	// 	margin: 5,
-	// 	fontSize: 16
-	// },
+	messageLabelText: {
+		...fontStyles.normal,
+		margin: 5,
+		fontSize: 16
+	},
 	// messageText: {
 	// 	flex: 1,
 	// 	margin: 5,
@@ -47,7 +46,7 @@ const styles = StyleSheet.create({
 /**
  * PureComponent that supports personal_sign
  */
-export default class CredentialReceive extends PureComponent {
+export default class SDisclosureRequest extends PureComponent {
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
@@ -69,11 +68,6 @@ export default class CredentialReceive extends PureComponent {
 		 * Object containing current page title and url
 		 */
 		currentPageInformation: PropTypes.object
-	};
-
-	state = {
-		vc: [],
-		loading: true
 	};
 
 	signMessage = async () => {
@@ -102,51 +96,21 @@ export default class CredentialReceive extends PureComponent {
 		this.props.onConfirm();
 	};
 
-	componentDidMount() {
-		setTimeout(() => {
-			this.getCredentialsFromMessage();
-
-			this.setState({ loading: false });
-		}, 300);
-	}
-
-	getCredentialsFromMessage = async () => {
-		const vcs = await dataStore.credentialsForMessageId(this.props.messageParams.dafmessageId);
-		console.log('CREDENTIAL_RECEIVE_VIEW', vcs);
-		const vcsWithFields = await Promise.all(
-			vcs.map(async vc => ({
-				...vc,
-				iss: {
-					did: vc.iss.did,
-					shortId: await dataStore.shortId(vc.iss.did)
-				},
-				sub: {
-					did: vc.sub.did,
-					shortId: await dataStore.shortId(vc.iss.did)
-				},
-				fields: await dataStore.credentialsFieldsForClaimHash(vc.hash)
-			}))
-		);
-
-		this.setState({
-			vc: vcsWithFields
-		});
-	};
-
 	render() {
-		const { currentPageInformation } = this.props;
+		const { messageParams, currentPageInformation } = this.props;
+
+		console.log(messageParams);
 
 		return (
 			<View style={styles.root}>
 				<View style={styles.titleWrapper}>
 					<Text style={styles.title} onPress={this.cancelSignature}>
-						Credential Received
+						Share Credentials
 					</Text>
 				</View>
 
-				<CredentialAccept
-					credentials={this.state.vc}
-					credentialsLoading={this.state.loading}
+				<Text>Show credential here</Text>
+				<VPSign
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
@@ -154,17 +118,9 @@ export default class CredentialReceive extends PureComponent {
 					type="credentialReceive"
 				>
 					<View style={styles.informationRow}>
-						{this.state.vc.map(vc => (
-							<Credential
-								background={'secondary'}
-								key={vc.hash}
-								issuer={vc.iss}
-								subject={vc.sub}
-								fields={vc.fields}
-							/>
-						))}
+						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
 					</View>
-				</CredentialAccept>
+				</VPSign>
 			</View>
 		);
 	}
