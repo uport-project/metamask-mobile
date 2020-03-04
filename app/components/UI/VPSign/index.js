@@ -154,7 +154,12 @@ class VPSign extends PureComponent {
 		/**
 		 * Whether it should display the warning message
 		 */
-		showWarning: PropTypes.bool
+		showWarning: PropTypes.bool,
+
+		/**
+		 * Whether it should display the warning message
+		 */
+		disabled: PropTypes.bool
 	};
 
 	renderPageInformation = () => {
@@ -261,7 +266,7 @@ class VPSign extends PureComponent {
 						{showWarning ? (
 							this.showWarning()
 						) : (
-							<Text style={styles.signText}>{strings('signature_request.signing')}</Text>
+							<Text style={styles.signText}>You are being requested to share credentials</Text>
 						)}
 					</View>
 				</View>
@@ -270,6 +275,7 @@ class VPSign extends PureComponent {
 					confirmTestID={'request-signature-confirm-button'}
 					cancelText={'Reject'}
 					confirmText={'Share'}
+					confirmDisabled={this.props.disabled}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 				>

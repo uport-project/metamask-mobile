@@ -4,9 +4,12 @@ import { StyleSheet, View, Text } from 'react-native';
 import { colors, fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import VPSign from '../VPSign';
-import { strings } from '../../../../locales/i18n';
+// import { strings } from '../../../../locales/i18n';
 // import { util } from 'gaba';
 import DeviceSize from '../../../util/DeviceSize';
+import { getRequestedClaims } from '../../../daf/getRequestClaims.ts';
+import { dataStore, core } from '../../../daf/setup.ts';
+import { RequestItem, Container } from '@kancha/kancha-ui';
 
 const styles = StyleSheet.create({
 	root: {
@@ -16,16 +19,12 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 10,
 		paddingBottom: DeviceSize.isIphoneX() ? 20 : 0
 	},
-	informationRow: {
-		borderBottomColor: colors.grey200,
-		borderBottomWidth: 1,
-		padding: 20
-	},
-	messageLabelText: {
-		...fontStyles.normal,
-		margin: 5,
-		fontSize: 16
-	},
+
+	// messageLabelText: {
+	// 	...fontStyles.normal,
+	// 	margin: 5,
+	// 	fontSize: 16
+	// },
 	// messageText: {
 	// 	flex: 1,
 	// 	margin: 5,
@@ -70,6 +69,21 @@ export default class SDisclosureRequest extends PureComponent {
 		currentPageInformation: PropTypes.object
 	};
 
+	state = {
+		sdr: []
+	};
+
+	async componentDidMount() {
+		setTimeout(async () => {
+			const sdr = await this.getSDRFrommessage();
+			let valid = true;
+			if (sdr[0].vc.length === 0) {
+				valid = false;
+			}
+			this.setState({ loading: false, sdr, valid });
+		}, 300);
+	}
+
 	signMessage = async () => {
 		const { messageParams } = this.props;
 		const { DafMessageManager } = Engine.context;
@@ -96,6 +110,16 @@ export default class SDisclosureRequest extends PureComponent {
 		this.props.onConfirm();
 	};
 
+	getSDRFrommessage = async () => {
+		const { PreferencesController } = Engine.context;
+		const selectedAddress = PreferencesController.internalState.selectedAddress;
+		const identity = await core.identityManager.getIdentity(`did:ethr:rinkeby:${selectedAddress}`.toLowerCase());
+		const msg = await dataStore.findMessage(this.props.messageParams.dafmessageId);
+		return await getRequestedClaims(msg, identity);
+	};
+
+	noop = () => 'Hey!';
+
 	render() {
 		const { messageParams, currentPageInformation } = this.props;
 
@@ -109,17 +133,27 @@ export default class SDisclosureRequest extends PureComponent {
 					</Text>
 				</View>
 
-				<Text>Show credential here</Text>
 				<VPSign
+					disabled={!this.state.valid}
 					navigation={this.props.navigation}
 					onCancel={this.cancelSignature}
 					onConfirm={this.confirmSignature}
 					currentPageInformation={currentPageInformation}
-					type="credentialReceive"
+					type="credentialRequest"
 				>
-					<View style={styles.informationRow}>
-						<Text style={styles.messageLabelText}>{strings('signature_request.message')}</Text>
-					</View>
+					<Container>
+						{this.state.sdr.map((sdr, index) => (
+							<RequestItem
+								key={index}
+								onSelectItem={this.noop}
+								reason={sdr.reason}
+								credentials={sdr.vc}
+								claimType={sdr.claimType}
+								required={sdr.essential}
+								issuers={sdr.issuers}
+							/>
+						))}
+					</Container>
 				</VPSign>
 			</View>
 		);

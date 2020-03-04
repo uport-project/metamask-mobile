@@ -269,7 +269,8 @@ class CredentialAccept extends PureComponent {
 					cancelTestID={'request-signature-cancel-button'}
 					confirmTestID={'request-signature-confirm-button'}
 					cancelText={'Reject'}
-					confirmText={'Accept'}
+					confirmText={'Done'}
+					showCancelButton={false}
 					onCancelPress={this.onCancel}
 					onConfirmPress={this.onConfirm}
 				>
